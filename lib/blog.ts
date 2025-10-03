@@ -2,182 +2,189 @@ import fs from 'fs';
 import path from 'path';
 import matter from 'gray-matter';
 
-// Mapping des catégories pour URLs courtes
-const CATEGORY_MAPPING = {
-  'demenagement-etudiant-bordeaux': 'etudiant',
-  'demenagement-entreprise-bordeaux': 'entreprise', 
-  'demenagement-piano-bordeaux': 'piano',
-  'demenagement-international-bordeaux': 'international',
-  'demenagement-longue-distance-bordeaux': 'longue-distance',
-  'demenagement-pas-cher-bordeaux': 'pas-cher',
-  'demenagement-urgent-bordeaux': 'urgent',
-  'devis-demenagement-bordeaux': 'devis',
-  'garde-meuble-bordeaux': 'garde-meuble',
-  'prix-demenagement-bordeaux': 'prix',
-  'prix-demenagement-piano-bordeaux': 'prix-piano',
-  // Gestion des catégories avec espaces (fallback)
-  'Déménagement entreprise': 'entreprise',
-  'Déménagement étudiant': 'etudiant',
-  'Déménagement piano': 'piano',
-  'Déménagement international': 'international'
-};
-
-// Fonction pour extraire la catégorie du chemin du fichier
-function extractCategoryFromPath(filePath: string): string {
-  const pathParts = filePath.split('/');
-  const categoryDir = pathParts[pathParts.length - 2]; // Le dossier parent du fichier .md
-  return categoryDir || 'default';
-}
-
 export interface BlogPost {
   slug: string;
   title: string;
-  meta_title: string;
-  meta_description: string;
-  h1: string;
+  meta_title?: string;
+  meta_description?: string;
+  h1?: string;
   category: string;
-  type: 'pilier' | 'satellite';
+  type?: string;
   keywords: string[];
-  word_count: number;
+  word_count?: number;
   publish_date: string;
-  featured: boolean;
+  featured?: boolean;
   content: string;
-  // URLs optimisées (nouvelles URLs propres)
+  // URLs optimisées
   cleanSlug: string;
   cleanCategory: string;
+  folderType: string; // piliers, satellites, categories
 }
 
-// Fonction pour nettoyer les slugs
+// Mapping des catégories pour les URLs propres
+const CATEGORY_MAPPING: { [key: string]: string } = {
+  'demenagement-etudiant-toulouse': 'aide-demenagement',
+  'demenagement-bureau-toulouse': 'aide-demenagement',
+  'demenagement-toulouse-usa': 'aide-demenagement',
+  'aide-demenagement': 'aide-demenagement',
+  'piliers': 'piliers',
+  'satellites': 'satellites',
+  'categories': 'categories',
+};
+
+function removeAccents(str: string): string {
+  return str.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+}
+
 function cleanSlug(originalSlug: string, category: string): string {
-  // Retirer le préfixe de catégorie redondant
-  let cleanSlug = originalSlug;
+  // Supprimer les accents d'abord
+  let cleanSlug = removeAccents(originalSlug);
   
   // Patterns de nettoyage spécifiques (ordre important!)
   const cleanPatterns = [
     // D'abord, retirer les préfixes de catégorie complets
-    { from: /^demenagement-etudiant-bordeaux-/, to: '' },
-    { from: /^demenagement-entreprise-bordeaux-/, to: '' },
-    { from: /^demenagement-piano-bordeaux-/, to: '' },
-    { from: /^demenagement-international-bordeaux-/, to: '' },
-    { from: /^demenagement-longue-distance-bordeaux-/, to: '' },
-    { from: /^demenagement-pas-cher-bordeaux-/, to: '' },
-    { from: /^demenagement-urgent-bordeaux-/, to: '' },
-    { from: /^devis-demenagement-bordeaux-/, to: '' },
-    { from: /^garde-meuble-bordeaux-/, to: '' },
-    { from: /^prix-demenagement-bordeaux-/, to: '' },
-    { from: /^prix-demenagement-piano-bordeaux-/, to: '' },
-    { from: /^prix-garde-meuble-bordeaux-/, to: '' },
-    // Ensuite, retirer les patterns partiels en début
-    { from: /^stockage-etudiant-bordeaux/, to: 'stockage-etudiant' },
-    { from: /^cartons-gratuits-bordeaux/, to: 'cartons-gratuits' },
-    { from: /^camion-demenagement-etudiant-bordeaux/, to: 'camion-demenagement-etudiant' },
-    { from: /^assurance-demenagement-international-bordeaux/, to: 'assurance-demenagement-international' },
-    { from: /^prix-demenagement-international-bordeaux/, to: 'prix-demenagement-international' },
-    { from: /^emballage-demenagement-international-bordeaux/, to: 'emballage-demenagement-international' },
-    { from: /^formalites-douanieres-demenagement-international-bordeaux/, to: 'formalites-douanieres-demenagement-international' },
-    // Retirer "-bordeaux" en milieu de slug
-    { from: /-bordeaux-/, to: '-' },
-    // Retirer "-bordeaux" en fin
-    { from: /-bordeaux$/, to: '' },
-    // Retirer les doublons et simplifications
-    { from: /-guide-complet$/, to: '-guide' },
-    { from: /-reperes-2025$/, to: '-2025' }
+    { from: /^demenagement-etudiant-toulouse-/, to: '' },
+    { from: /^demenagement-bureau-toulouse-/, to: '' },
+    { from: /^demenagement-toulouse-usa-/, to: '' },
+    { from: /^aide-demenagement-/, to: '' },
+    
+    // Ensuite, retirer les préfixes génériques
+    { from: /^demenagement-toulouse-/, to: '' },
+    { from: /^demenagement-/, to: '' },
+    { from: /^toulouse-/, to: '' },
+    
+    // Retirer les suffixes courants
+    { from: /-toulouse$/, to: '' },
+    { from: /-demenagement$/, to: '' },
+    { from: /-pas-cher$/, to: '' },
+    { from: /-gratuit$/, to: '' },
+    { from: /-guide$/, to: '' },
+    
+    // Nettoyer les caractères spéciaux
+    { from: /[^a-z0-9-]/g, to: '-' },
+    { from: /-+/g, to: '-' },
+    { from: /^-+|-+$/g, to: '' },
   ];
 
+  // Appliquer les patterns de nettoyage
   cleanPatterns.forEach(pattern => {
     cleanSlug = cleanSlug.replace(pattern.from, pattern.to);
   });
 
+  // S'assurer qu'on a un slug valide
+  if (!cleanSlug || cleanSlug.length < 2) {
+    cleanSlug = 'article';
+  }
+
   return cleanSlug;
 }
 
+function extractCategoryFromPath(filePath: string): string {
+  const pathParts = filePath.split('/');
+  const blogIndex = pathParts.findIndex(part => part === 'blog');
+  if (blogIndex !== -1 && pathParts[blogIndex + 1]) {
+    return pathParts[blogIndex + 1];
+  }
+  return 'uncategorized';
+}
+
 export function getAllBlogPosts(): BlogPost[] {
-  const blogDirectory = path.join(process.cwd(), 'content/blog');
-  const categories = fs.readdirSync(blogDirectory, { withFileTypes: true })
-    .filter(dirent => dirent.isDirectory())
-    .map(dirent => dirent.name);
+  try {
+    const blogDirectory = '/Users/guillaumestehelin/moverz_CENTRAL-2/sites/toulouse/content/blog';
+    
+    if (!fs.existsSync(blogDirectory)) {
+      console.log('ERROR: blogDirectory does not exist');
+      return [];
+    }
+    
+    const categories = fs.readdirSync(blogDirectory, { withFileTypes: true })
+      .filter(dirent => dirent.isDirectory())
+      .map(dirent => dirent.name);
 
-  const allPosts: BlogPost[] = [];
+    const allPosts: BlogPost[] = [];
 
-  categories.forEach(category => {
-    const categoryPath = path.join(blogDirectory, category);
-    const files = fs.readdirSync(categoryPath)
-      .filter(file => file.endsWith('.md') && file !== 'README.md');
+    categories.forEach(category => {
+      const categoryPath = path.join(blogDirectory, category);
+      const files = fs.readdirSync(categoryPath)
+        .filter(file => file.endsWith('.md') && file !== 'README.md');
 
-    files.forEach(file => {
-      const filePath = path.join(categoryPath, file);
-      const fileContents = fs.readFileSync(filePath, 'utf8');
-      const { data, content } = matter(fileContents);
+      files.forEach(file => {
+        const filePath = path.join(categoryPath, file);
+        const fileContents = fs.readFileSync(filePath, 'utf8');
+        const { data, content } = matter(fileContents);
 
-      const originalSlug = data.slug || file.replace('.md', '');
-      
-      // Utiliser la catégorie du frontmatter ou extraire du chemin
-      const category = data.category || extractCategoryFromPath(filePath);
-      const cleanCategorySlug = cleanSlug(originalSlug, category);
-      const cleanCategory = CATEGORY_MAPPING[category as keyof typeof CATEGORY_MAPPING] || category;
+        const originalSlug = data.slug || file.replace('.md', '');
+        
+        // Utiliser la catégorie du frontmatter ou extraire du chemin
+        const category = data.category || extractCategoryFromPath(filePath);
+        const cleanCategorySlug = cleanSlug(originalSlug, category);
+        const cleanCategory = removeAccents(CATEGORY_MAPPING[category as keyof typeof CATEGORY_MAPPING] || category);
 
-      // Gérer les keywords (peuvent être string ou array)
-      let keywordsArray: string[] = [];
-      if (data.keywords) {
-        if (typeof data.keywords === 'string') {
-          keywordsArray = data.keywords.split(',').map(k => k.trim()).filter(k => k.length > 0);
-        } else if (Array.isArray(data.keywords)) {
-          keywordsArray = data.keywords;
+        // Gérer les keywords (peuvent être string ou array)
+        let keywordsArray: string[] = [];
+        if (data.keywords) {
+          if (typeof data.keywords === 'string') {
+            keywordsArray = data.keywords.split(',').map(k => k.trim()).filter(k => k.length > 0);
+          } else if (Array.isArray(data.keywords)) {
+            keywordsArray = data.keywords;
+          }
         }
-      }
 
-      allPosts.push({
-        slug: originalSlug,
-        title: data.title,
-        meta_title: data.meta_title,
-        meta_description: data.meta_description,
-        h1: data.h1,
-        category: category,
-        type: data.type,
-        keywords: keywordsArray,
-        word_count: data.word_count,
-        publish_date: data.publish_date || data.date || new Date().toISOString().split('T')[0],
-        featured: data.featured || false,
-        content,
-        // URLs optimisées
-        cleanSlug: cleanCategorySlug,
-        cleanCategory,
+        // Déterminer le type de dossier (piliers, satellites, categories)
+        const folderType = path.basename(path.dirname(filePath));
+
+        allPosts.push({
+          slug: originalSlug,
+          title: data.title,
+          meta_title: data.meta_title,
+          meta_description: data.meta_description,
+          h1: data.h1,
+          category: category,
+          type: data.type,
+          keywords: keywordsArray,
+          word_count: data.word_count,
+          publish_date: data.publish_date || data.date || new Date().toISOString().split('T')[0],
+          featured: data.featured || false,
+          content,
+          // URLs optimisées
+          cleanSlug: cleanCategorySlug,
+          cleanCategory,
+          folderType, // Ajout du folderType
+        });
       });
     });
-  });
 
-  return allPosts.sort((a, b) => new Date(b.publish_date).getTime() - new Date(a.publish_date).getTime());
+    return allPosts.sort((a, b) => new Date(b.publish_date).getTime() - new Date(a.publish_date).getTime());
+  } catch (error) {
+    console.log('ERROR in getAllBlogPosts:', error);
+    return [];
+  }
 }
 
-// Fonction pour trouver un article par son nouveau slug
-export function getBlogPostByCleanSlug(cleanCategory: string, cleanSlug: string): BlogPost | null {
-  const posts = getAllBlogPosts();
-  return posts.find(post => post.cleanCategory === cleanCategory && post.cleanSlug === cleanSlug) || null;
-}
-
-// Fonction legacy pour compatibilité
-export function getBlogPostBySlug(slug: string): BlogPost | null {
-  const posts = getAllBlogPosts();
-  return posts.find(post => post.slug === slug) || null;
-}
-
-export function getBlogPostsByCategory(category: string): BlogPost[] {
-  const posts = getAllBlogPosts();
-  return posts.filter(post => post.category === category);
-}
-
-// Nouvelle fonction pour les catégories propres
-export function getBlogPostsByCleanCategory(cleanCategory: string): BlogPost[] {
-  const posts = getAllBlogPosts();
-  return posts.filter(post => post.cleanCategory === cleanCategory);
+export function getBlogPostByCleanSlug(category: string, slug: string): BlogPost | null {
+  try {
+    const allPosts = getAllBlogPosts();
+    
+    // Nettoyer le slug et la catégorie pour la comparaison
+    const cleanCategory = removeAccents(category);
+    const cleanSlugToFind = removeAccents(slug);
+    
+    const post = allPosts.find(p => 
+      removeAccents(p.cleanCategory) === cleanCategory && 
+      removeAccents(p.cleanSlug) === cleanSlugToFind
+    );
+    
+    return post || null;
+  } catch (error) {
+    console.log('ERROR in getBlogPostByCleanSlug:', error);
+    return null;
+  }
 }
 
 export function getPilierPosts(): BlogPost[] {
-  const posts = getAllBlogPosts();
-  return posts.filter(post => post.type === 'pilier');
+  return getAllBlogPosts().filter(post => post.folderType === 'piliers');
 }
 
-export function getFeaturedPosts(): BlogPost[] {
-  const posts = getAllBlogPosts();
-  return posts.filter(post => post.featured);
+export function getSatellitePosts(): BlogPost[] {
+  return getAllBlogPosts().filter(post => post.folderType === 'satellites');
 }
