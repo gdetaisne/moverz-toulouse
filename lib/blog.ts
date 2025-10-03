@@ -188,3 +188,17 @@ export function getPilierPosts(): BlogPost[] {
 export function getSatellitePosts(): BlogPost[] {
   return getAllBlogPosts().filter(post => post.folderType === 'satellites');
 }
+
+export function getBlogPostsByCleanCategory(category: string): BlogPost[] {
+  try {
+    const allPosts = getAllBlogPosts();
+    const cleanCategory = removeAccents(category);
+    
+    return allPosts.filter(post => 
+      removeAccents(post.cleanCategory) === cleanCategory
+    );
+  } catch (error) {
+    console.log('ERROR in getBlogPostsByCleanCategory:', error);
+    return [];
+  }
+}
