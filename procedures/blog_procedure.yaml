@@ -1,0 +1,300 @@
+# 📝 Procédure de Génération de Blog - Version Universelle
+# Optimisée SEO, sans images, pipeline strict, catégorisation automatique
+# Compatible avec toutes les villes Moverz
+
+name: "Génération de Blog Moverz"
+version: "2.1"
+description: "Procédure universelle pour générer du contenu blog optimisé SEO avec taxonomie catégories pour n'importe quelle ville"
+
+# 🎯 OBJECTIFS STRATÉGIQUES
+objectives:
+  - "Générer du contenu blog optimisé SEO pour chaque ville"
+  - "Respecter strictement les mots_obligatoires (2-3x chacun)"
+  - "Maintenir une densité de mot-clé principal de 2-3%"
+  - "Créer un réseau de liens internes cohérent (6-10 liens/article)"
+  - "Intégrer Schema.org Article + FAQPage"
+  - "Éviter tout article orphelin"
+  - "Optimiser pour le référencement local"
+
+# 📋 PIPELINE DE GÉNÉRATION (ORDRE STRICT)
+pipeline:
+  - step: "read_spec"
+    name: "Lecture des Spécifications"
+    description: "Charger et valider le fichier blog_spec-[ville].yaml"
+    requirements:
+      - "Fichier YAML valide avec structure complète"
+      - "Tous les champs obligatoires présents"
+      - "Format des mots_obligatoires conforme"
+      - "Chargement de la taxonomie des catégories"
+    validation:
+      - "Structure YAML valide"
+      - "Champs city, domain, locale présents"
+      - "Au moins 1 article défini"
+      - "Chaque article a slug, title, variants, brief_seo, mots_obligatoires"
+      - "Category_overrides chargés si présents"
+
+  - step: "deepsearch_1"
+    name: "Recherche Approfondie Initiale"
+    description: "Analyser la concurrence et les opportunités SEO"
+    requirements:
+      - "Analyse des SERP pour chaque mot-clé principal"
+      - "Identification des gaps de contenu"
+      - "Recherche des questions fréquentes"
+    outputs:
+      - "Rapport de concurrence par article"
+      - "Liste des questions FAQ identifiées"
+      - "Recommandations de structure"
+
+  - step: "generate_pillars"
+    name: "Génération des Articles Piliers"
+    description: "Créer les articles principaux (1200-1800 mots)"
+    requirements:
+      - "Longueur cible : 1200-1800 mots"
+      - "Densité mot-clé principal : 2-3%"
+      - "Mots_obligatoires répétés 2-3x chacun"
+      - "Structure H1, H2, H3 optimisée"
+      - "Introduction engageante (150-200 mots)"
+      - "Conclusion avec CTA (100-150 mots)"
+    content_structure:
+      - "H1 : Titre principal avec mot-clé"
+      - "H2 : Introduction (150-200 mots)"
+      - "H2 : Section principale 1 (300-400 mots)"
+      - "H2 : Section principale 2 (300-400 mots)"
+      - "H2 : Section principale 3 (300-400 mots)"
+      - "H2 : FAQ (4-6 questions, 80-120 mots/réponse)"
+      - "H2 : Conclusion + CTA (100-150 mots)"
+
+  - step: "generate_satellites"
+    name: "Génération des Articles Satellites"
+    description: "Créer les articles complémentaires (800-1200 mots)"
+    requirements:
+      - "Longueur cible : 800-1200 mots"
+      - "Densité mot-clé secondaire : 2-3%"
+      - "Mots_obligatoires répétés 2-3x chacun"
+      - "Liens vers articles piliers (2-3 minimum)"
+    content_structure:
+      - "H1 : Titre avec mot-clé secondaire"
+      - "H2 : Introduction (100-150 mots)"
+      - "H2 : Section principale 1 (200-300 mots)"
+      - "H2 : Section principale 2 (200-300 mots)"
+      - "H2 : FAQ (3-4 questions, 80-120 mots/réponse)"
+      - "H2 : Conclusion + CTA (80-120 mots)"
+
+  - step: "deepsearch_2_review"
+    name: "Revue Approfondie Post-Génération"
+    description: "Vérifier la qualité et l'optimisation SEO"
+    requirements:
+      - "Vérification densité mots-clés"
+      - "Contrôle répétition mots_obligatoires"
+      - "Validation structure H1/H2/H3"
+      - "Vérification longueurs cibles"
+    checks:
+      - "Densité mot-clé principal : 2-3%"
+      - "Mots_obligatoires : 2-3x chacun minimum"
+      - "Longueur piliers : 1200-1800 mots"
+      - "Longueur satellites : 800-1200 mots"
+      - "Structure sémantique cohérente"
+
+  - step: "internal_linking"
+    name: "Optimisation des Liens Internes"
+    description: "Créer un réseau de liens internes cohérent"
+    requirements:
+      - "6-10 liens internes par article"
+      - "Ancres naturelles et contextuelles"
+      - "Distribution équilibrée des liens"
+      - "Liens vers pages principales du site"
+    linking_strategy:
+      - "Liens vers articles piliers (2-3)"
+      - "Liens vers articles satellites (2-3)"
+      - "Liens vers pages services (1-2)"
+      - "Liens vers pages quartiers (1-2)"
+      - "Liens vers pages FAQ (1-2)"
+
+  - step: "build_categories"
+    name: "Construction des Catégories"
+    description: "Générer les pages d'index catégorie et assigner les catégories"
+    requirements:
+      - "Assigner catégorie à chaque article (obligatoire)"
+      - "Appliquer mapping par défaut si pas d'override"
+      - "Générer pages d'index catégorie"
+      - "Créer maillage entre catégories et piliers"
+    category_assignment:
+      - "Vérifier category_overrides du spec"
+      - "Appliquer mapping par défaut si absent"
+      - "Assigner tags libres si fournis"
+    category_pages:
+      - "Générer /blog/[ville]/categories/{slug}/index.md"
+      - "Contenu 400-600 mots par page catégorie"
+      - "H2 sous-thèmes, liste d'articles"
+      - "Lien vers pilier clé de la catégorie"
+
+  - step: "qa_validation"
+    name: "Validation Qualité Automatique"
+    description: "Contrôles finaux avant export"
+    requirements:
+      - "H1 unique par article"
+      - "Métadonnées complètes"
+      - "Longueurs respectées"
+      - "Mots_obligatoires validés"
+      - "FAQ complètes"
+      - "Liens internes fonctionnels"
+      - "Schema.org valide"
+    validation_checks:
+      - "Structure HTML valide"
+      - "Métadonnées SEO complètes"
+      - "Densité mots-clés conforme"
+      - "Absence d'articles orphelins"
+      - "Liens internes fonctionnels"
+
+  - step: "export"
+    name: "Export Final"
+    description: "Génération des fichiers Markdown optimisés"
+    requirements:
+      - "Fichiers Markdown valides"
+      - "Métadonnées frontmatter complètes"
+      - "Structure de dossiers cohérente"
+      - "Noms de fichiers SEO-friendly"
+    outputs:
+      - "Articles Markdown dans /content/blog/"
+      - "Métadonnées frontmatter complètes"
+      - "Structure de catégories cohérente"
+
+# 🏷️ TAXONOMIE DES CATÉGORIES (FIXES)
+categories:
+  fixed_categories:
+    - "deménagement-etudiant"
+    - "deménagement-entreprise"
+    - "prix-et-tarifs"
+    - "devis-demenagement"
+    - "deménagement-economique"
+    - "deménagement-urgent"
+    - "longue-distance"
+    - "garde-meuble"
+    - "international"
+    - "demenagement-piano"
+  
+  category_assignment:
+    default_mapping:
+      "déménagement pas cher [ville]": "deménagement-economique"
+      "déménagement international [ville]": "international"
+      "déménagement piano [ville]": "demenagement-piano"
+      "garde meuble [ville]": "garde-meuble"
+      "petit déménagement [ville]": "deménagement-etudiant"
+      "aide au déménagement [ville]": "deménagement-urgent"  # Si assistance rapide
+      "déménagement d'entreprise [ville]": "deménagement-entreprise"
+      "déménageur [ville]": "devis-demenagement"
+      "prix déménagement [ville]": "prix-et-tarifs"
+      "location camion déménagement [ville]": "deménagement-economique"
+    
+    assignment_rules:
+      - "Si category_overrides présent dans spec → prioritaire"
+      - "Sinon → appliquer mapping par défaut"
+      - "Chaque article a 1 catégorie principale (obligatoire)"
+      - "Tags libres optionnels si fournis dans spec"
+
+# 📊 EXIGENCES TECHNIQUES STRICTES
+technical_requirements:
+  seo_optimization:
+    - "Densité mot-clé principal : 2-3%"
+    - "Densité mot-clé secondaire : 2-3%"
+    - "Mots_obligatoires : 2-3x chacun minimum"
+    - "H1 unique par article"
+    - "Structure H2/H3 sémantique"
+    - "Métadonnées title, description, keywords"
+    - "URLs SEO-friendly"
+
+  content_quality:
+    - "Longueur piliers : 1200-1800 mots"
+    - "Longueur satellites : 800-1200 mots"
+    - "Réponses FAQ : 80-120 mots"
+    - "Introduction engageante"
+    - "Conclusion avec CTA"
+    - "Ton professionnel et local"
+
+  schema_org:
+    - "Article schema pour tous les articles"
+    - "FAQPage schema pour sections FAQ"
+    - "BreadcrumbList pour navigation"
+    - "LocalBusiness pour contexte local"
+
+  internal_linking:
+    - "6-10 liens internes par article"
+    - "Ancres naturelles et contextuelles"
+    - "Distribution équilibrée"
+    - "Liens vers pages principales"
+    - "Pas d'articles orphelins"
+
+# 🚨 RÈGLES D'ARRÊT (ERREURS CRITIQUES)
+error_conditions:
+  - "Fichier spec manquant ou invalide"
+  - "Mots_obligatoires non respectés (< 2x)"
+  - "Densité mot-clé < 2% ou > 3%"
+  - "Longueur article < 800 mots"
+  - "H1 manquant ou multiple"
+  - "Métadonnées incomplètes"
+  - "Liens internes < 6 par article"
+  - "Schema.org invalide"
+  - "Article orphelin détecté"
+
+# 📁 STRUCTURE DE SORTIE
+output_structure:
+  content_path: "/content/blog/"
+  file_naming: "YYYY-MM-DD-[slug].md"
+  category_structure:
+    articles_path: "/blog/[ville]/piliers/*"
+    satellites_path: "/blog/[ville]/satellites/*"
+    categories_path: "/blog/[ville]/categories/*"
+    sitemap_path: "/blog/[ville]/sitemap-blog.xml"
+  frontmatter_required:
+    - "title"
+    - "description"
+    - "date"
+    - "category"  # Obligatoire (1 des 10 catégories fixes)
+    - "tags"     # Optionnel (liste libre)
+    - "author"
+    - "featured"
+    - "excerpt"
+
+# 🔄 PROCESSUS DE VALIDATION
+validation_process:
+  pre_generation:
+    - "Vérification structure spec"
+    - "Validation mots_obligatoires"
+    - "Contrôle cohérence données"
+  
+  post_generation:
+    - "Validation longueurs"
+    - "Contrôle densité mots-clés"
+    - "Vérification liens internes"
+    - "Test Schema.org"
+    - "Validation métadonnées"
+
+# 📈 MÉTRIQUES DE SUCCÈS
+success_metrics:
+  content_quality:
+    - "Longueur cible respectée : 100%"
+    - "Mots_obligatoires : 2-3x chacun : 100%"
+    - "Densité mots-clés : 2-3% : 100%"
+    - "Structure H1/H2/H3 : 100%"
+  
+  seo_optimization:
+    - "Métadonnées complètes : 100%"
+    - "Liens internes : 6-10 par article : 100%"
+    - "Schema.org valide : 100%"
+    - "URLs SEO-friendly : 100%"
+  
+  technical_quality:
+    - "Markdown valide : 100%"
+    - "Pas d'articles orphelins : 100%"
+    - "Liens fonctionnels : 100%"
+    - "Structure cohérente : 100%"
+
+# 🎯 NOTES IMPORTANTES
+notes:
+  - "Cette procédure est universelle et s'applique à toutes les villes"
+  - "Aucune image n'est générée (focus contenu textuel)"
+  - "Respect strict des mots_obligatoires est OBLIGATOIRE"
+  - "La densité de mots-clés doit être précise (2-3%)"
+  - "Tous les articles doivent être interconnectés"
+  - "Le Schema.org est obligatoire pour le SEO"
+  - "En cas d'erreur, STOP et corriger avant de continuer"
