@@ -182,11 +182,11 @@ export default function CategoryPage({ params }: CategoryPageProps) {
                               <div className="text-xs text-white/80">Complet</div>
                             </div>
                             <div className="bg-[#04163a]/90 backdrop-blur-sm rounded-lg p-3 text-center border border-[#6bcfcf]/30">
-                              <div className="text-lg font-bold text-[#6bcfcf]">{Math.ceil(post.word_count / 200)}'</div>
+                              <div className="text-lg font-bold text-[#6bcfcf]">{Math.ceil((post.word_count || 1000) / 200)}'</div>
                               <div className="text-xs text-white/80">Lecture</div>
                             </div>
                             <div className="bg-[#04163a]/90 backdrop-blur-sm rounded-lg p-3 text-center border border-[#6bcfcf]/30">
-                              <div className="text-lg font-bold text-[#6bcfcf]">{Math.floor(post.word_count / 1000)}k</div>
+                              <div className="text-lg font-bold text-[#6bcfcf]">{Math.floor((post.word_count || 1000) / 1000)}k</div>
                               <div className="text-xs text-white/80">Mots</div>
                             </div>
                           </div>
